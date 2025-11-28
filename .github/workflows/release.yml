@@ -1,0 +1,57 @@
+name: Create Release & Tag
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: get_version
+        run: |
+          VERSION="${GITHUB_REF#refs/tags/}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Generate basic release notes
+        id: notes
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          echo "## atacSeqy $VERSION" > RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "- Automated release for tag \`$VERSION\`" >> RELEASE_NOTES.md
+          echo "" >> RELEASE_NOTES.md
+          echo "See CHANGELOG.md for detailed changes." >> RELEASE_NOTES.md
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.get_version.outputs.version }}
+          release_name: "atacSeqy ${{ steps.get_version.outputs.version }}"
+          body_path: RELEASE_NOTES.md
+          draft: false
+          prerelease: false
+
+      - name: Upload compiled artifacts (if any)
+        if: false  # set to true and customize if you add build artifacts
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./dist/some-asset.tar.gz
+          asset_name: some-asset.tar.gz
+          asset_content_type: application/gzip

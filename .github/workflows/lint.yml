@@ -1,0 +1,46 @@
+name: Lint Shell Scripts
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - "**.sh"
+      - ".github/workflows/lint.yml"
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - "**.sh"
+  workflow_dispatch:
+
+jobs:
+  shellcheck:
+    name: ShellCheck Linting
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install ShellCheck
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck
+
+      - name: Find and lint all .sh scripts
+        run: |
+          echo "Searching for .sh files…"
+          FILES=$(find . -type f -name "*.sh")
+
+          if [ -z "$FILES" ]; then
+            echo "No shell scripts found — nothing to lint."
+            exit 0
+          fi
+
+          echo "Linting the following shell scripts:"
+          echo "$FILES"
+
+          # Run shellcheck on each file
+          for f in $FILES; do
+            echo "Running ShellCheck on: $f"
+            shellcheck "$f"
+          done

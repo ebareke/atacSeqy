@@ -1,0 +1,64 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  syntax-and-basic-checks:
+    name: Syntax & Basic Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Show repository tree (debug)
+        run: |
+          pwd
+          ls -R
+
+      - name: Check run.sh syntax (if present)
+        run: |
+          if [ -f run.sh ]; then
+            echo "Found run.sh – checking bash syntax…"
+            bash -n run.sh
+          else
+            echo "No run.sh found, skipping bash syntax check."
+          fi
+
+      - name: Check validate_config.sh syntax (if present)
+        run: |
+          if [ -f validate_config.sh ]; then
+            echo "Found validate_config.sh – checking bash syntax…"
+            bash -n validate_config.sh
+          else
+            echo "No validate_config.sh found, skipping."
+          fi
+
+  validate-config:
+    name: Validate Example Config (if available)
+    runs-on: ubuntu-latest
+    needs: syntax-and-basic-checks
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install yq (for YAML parsing)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y yq
+
+      - name: Run validate_config.sh on config.yaml + samples.csv (if all exist)
+        run: |
+          if [ -f validate_config.sh ] && [ -f config.yaml ] && [ -f samples.csv ]; then
+            echo "Running configuration validation…"
+            chmod +x validate_config.sh
+            ./validate_config.sh config.yaml samples.csv
+          else
+            echo "Config validation skipped – one or more of validate_config.sh, config.yaml, samples.csv not found."
+          fi
