@@ -7,24 +7,6 @@ Designed to deliver **end-to-end chromatin accessibility analysis** with minimal
 
 ---
 
-## 🚀 Futuristic Banner (Concept)
-
-> *Chromatin accessibility, reimagined as a self-driving analysis engine for your sequencing data.*
-
-You can optionally add a custom banner image in your GitHub repo settings or via Markdown, for example:
-
-```md
-![atacSeqy Futuristic Banner](docs/workflow.svg)
-```
-
----
-
-## 🎖️ Badges
-
----
-
-## 🧪 Pipeline Logo
-
 <p align="center">
   <img src="docs/img/logo.svg" width="260" alt="atacSeqy logo" />
 </p>
