@@ -1,6 +1,3 @@
-# .github/workflows/docker.yml
-
-```yaml
 name: Build & Publish Docker Image
 
 on:
@@ -61,5 +58,3 @@ jobs:
 
       - name: Display published tags
         run: echo "Published: ${{ steps.meta.outputs.tags }}"
-```
-
