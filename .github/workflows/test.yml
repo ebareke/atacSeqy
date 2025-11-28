@@ -99,8 +99,8 @@ jobs:
         run: |
           echo "Dockerfile found — building container..."
           docker build -t atacseqy:test .
-          echo "✔ Docker build success"
+          echo " Docker build success"
 
       - name: Skip if no Dockerfile
         if: steps.docker_exists.outputs.exists == 'false'
-        run: echo "⚠ No Dockerfile — skipping Docker test"
+        run: echo " No Dockerfile — skipping Docker test"
