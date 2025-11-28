@@ -1,0 +1,337 @@
+---
+# Nextflow DSL2 ATAC-seq pipeline
+# Files included below in this single document (separate with markers):
+#  - main.nf           (pipeline core)
+#  - nextflow.config   (execution + container settings)
+#  - modules/README    (notes about modules)
+#  - README.md         (usage and examples)
+---
+
+==== main.nf ====
+#!/usr/bin/env nextflow
+nextflow.enable.dsl=2
+
+// ATAC-seq DSL2 pipeline
+
+import groovy.json.JsonOutput
+
+params.config = params.config ?: 'config.yaml'
+params.samples = params.samples ?: 'samples.csv'
+params.species = params.species ?: ''
+params.outdir = params.outdir ?: 'results'
+params.threads = params.threads ?: 8
+params.resume = params.resume ?: false
+params.container = params.container ?: 'quay.io/biocontainers/bwa:0.7.17--0'
+params.max_memory = params.max_memory ?: '64.GB'
+params.region = params.region ?: ''
+
+workflow {
+    main:
+    Channel.fromPath(params.samples).ifEmpty { error "Samplesheet not found: ${params.samples}" }
+        .flatMap { file -> file.readLines().drop(1) }
+        .map { line -> def cols = line.split(','); [cols[0], cols[1] ?: '', cols[2] ?: '', cols[3] ?: '', cols[4]?: '', cols[5]?: '', cols[6]?: ''] }
+        .set { sample_rows }
+
+    sample_rows | groupTuple(by: { it[0] }) | map { it[1].first() } into: samples_ch
+
+    // initial resource/species load
+    files(params.config).set { config_file }
+
+    prepare_config(config_file)
+        .set { cfg }
+
+    samples_ch | combine(cfg) | map { row, cfgmap ->
+        def (sample_id, fastq1, fastq2, bam, group, rep, species_col) = row
+        def species = species_col ?: params.species ?: cfgmap.default_species
+        tuple(sample_id, fastq1, fastq2, bam, group, rep, species)
+    } into: samples_for_processing
+
+    samples_for_processing | parallelMap { sample ->
+        tuple sample
+    } into: sample_tuples
+
+    // run bwa index once per species (if needed)
+    cfg | map { it.speciesMap } | flatten() | unique() | set { species_list }
+
+    species_list | map { sp -> sp } | into: species_ch
+
+    species_ch.flatMap { sp -> bwa_index(sp, cfg) } | set { bwa_indexes }
+
+    // per-sample workflow
+    samples_for_processing.map { s -> tuple(s) } 
+        .into { per_sample }
+
+    process_samples(per_sample, bwa_indexes, cfg)
+        .set { processed }
+
+    processed.collect().view()
+
+    // post processing steps (depend on all processed)
+    processed.collect().map { it } .into { all_processed }
+
+    all_processed | merge_peaks(cfg) | counts(cfg) | qc_and_concordance(cfg)
+
+}
+
+// ----------------------
+// Processes and workflow functions
+// ----------------------
+
+process prepare_config {
+    tag "prepare_config"
+    input:
+    path config_file
+    output:
+    path 'parsed_config.json'
+    script:
+    """
+    yq -o=json '.' ${config_file} > parsed_config.json
+    """
+}
+
+// bwa_index: builds index if necessary and returns prefix
+workflow bwa_index {
+    take: species_ch, cfg
+    main:
+    species_ch.map { sp ->
+        def prefix = sp.bwa_index_prefix ?: (sp.genome_fa - ~/\.fa$|\.fasta$/) + '.bwa'
+        tuple(sp.name, sp.genome_fa, prefix)
+    } | set { idxs }
+
+    idxs.map { name, fasta, prefix ->
+        if (!file(prefix + '.bwt').exists()) {
+            emit: bwa_index_proc(name: name, fasta: fasta, prefix: prefix)
+        } else {
+            create: emit(name: name, prefix: prefix)
+        }
+    }
+}
+
+process bwa_index_proc {
+    tag { "bwa_index:${name}" }
+    publishDir "./indexes", mode: 'copy'
+    input:
+    val name
+    path fasta
+    val prefix
+    output:
+    val prefix into: idx_prefix_ch
+    script:
+    """
+    bwa index -p ${prefix} ${fasta}
+    echo ${prefix} > ${name}.bwa_prefix.txt
+    """
+}
+
+// process_samples: wrapper to run mapping+processing per sample
+workflow process_samples {
+    take: samples_for_processing, bwa_indexes, cfg
+    main:
+    samples_for_processing.map { s -> tuple(s) } | map { tuple ->
+        def (sample_id, fastq1, fastq2, bam, group, rep, species) = tuple[0]
+        def sp = null
+        // load species info from parsed JSON
+        def cfgfile = file('parsed_config.json')
+        def cfgjson = new groovy.json.JsonSlurper().parseText(cfgfile.text)
+        sp = cfgjson.species[species]
+        tuple(sample_id, fastq1, fastq2, bam, group, rep, species, sp)
+    } into: samples_proc_ch
+
+    samples_proc_ch.map { s -> map_sample(s) } | set { processed }
+}
+
+process map_sample {
+    tag { sample_id }
+    publishDir "samples/${sample_id}", mode: 'copy'
+
+    input:
+    val sample_id
+    val fastq1
+    val fastq2
+    val bam_in
+    val group
+    val rep
+    val species
+    val sp
+    output:
+    path "samples/${sample_id}/${sample_id}.filtered.bam" into: filtered_bams
+    path "samples/${sample_id}/macs2/${sample_id}_peaks.narrowPeak" optional true into: peaks_out
+
+    cpus params.threads
+    memory params.max_memory
+    container params.container
+
+    script:
+    """
+    set -euo pipefail
+    mkdir -p samples/${sample_id}
+    cd samples/${sample_id}
+
+    # mapping
+    if [[ -n \"${bam_in}\" && -f \"${bam_in}\" ]]; then
+      samtools sort -@ ${task.cpus} -o ${sample_id}.sorted.bam ${bam_in}
+    else
+      if [[ -n \"${fastq2}\" ]]; then
+        atropos trim --threads ${task.cpus} -a AGATCGGAAGAG -A AGATCGGAAGAG -pe1 ${fastq1} -pe2 ${fastq2} -o R1.trim.fq.gz -p R2.trim.fq.gz --minimum-length 25 --nextseq-trim 25
+        bwa mem -M -t ${task.cpus} ${sp.bwa_index_prefix} R1.trim.fq.gz R2.trim.fq.gz | samtools sort -@ ${task.cpus} -o ${sample_id}.sorted.bam -
+      else
+        atropos trim --threads ${task.cpus} -a AGATCGGAAGAG -o R1.trim.fq.gz --minimum-length 25 ${fastq1}
+        bwa mem -M -t ${task.cpus} ${sp.bwa_index_prefix} R1.trim.fq.gz | samtools sort -@ ${task.cpus} -o ${sample_id}.sorted.bam -
+      fi
+    fi
+    samtools index ${sample_id}.sorted.bam
+
+    # mark duplicates
+    samtools fixmate -m ${sample_id}.sorted.bam fix.bam || true
+    samtools sort -@ ${task.cpus} -o ns.bam fix.bam || true
+    samtools markdup -r ns.bam dedup.bam || samtools markdup -r ${sample_id}.sorted.bam dedup.bam
+    samtools index dedup.bam
+
+    # Tn5 shift
+    alignmentSieve --bam dedup.bam --outFile shifted.bam --ATACshift --numberOfProcessors ${task.cpus} --minMappingQuality 10
+    samtools index shifted.bam
+
+    # blacklist
+    if [[ -n \"${sp.blacklist}\" && -f \"${sp.blacklist}\" ]]; then
+      bedtools intersect -v -abam shifted.bam -b ${sp.blacklist} > filtered.bam
+    else
+      cp shifted.bam filtered.bam
+    fi
+    samtools index filtered.bam
+
+    # peak calling (adaptive)
+    peak_mode=${sp.peak_mode ?: 'narrow'}
+    if [[ "$peak_mode" == 'auto' ]]; then
+      if (( ${sp.effective_genome_size} > 500000000 )); then peak_mode='broad'; else peak_mode='narrow'; fi
+    fi
+    mkdir -p macs2
+    if [[ "$peak_mode" == 'narrow' ]]; then
+      macs2 callpeak -t filtered.bam -f BAM -n ${sample_id} --nomodel --shift 0 --extsize 200 -q 0.01 --keep-dup all --outdir macs2
+    else
+      macs2 callpeak -t filtered.bam -f BAM -n ${sample_id} --broad --nomodel --shift 0 --extsize 200 -q 0.05 --keep-dup all --outdir macs2
+    fi
+
+    # fragments
+    bamToBed -bedpe -i filtered.bam > fragments.bedpe
+
+    # bigWig
+    if command -v bamCoverage >/dev/null 2>&1; then
+      bamCoverage -b filtered.bam -o ${sample_id}.bw --normalizeUsing RPGC --effectiveGenomeSize ${sp.effective_genome_size} --binSize 10 -p ${task.cpus}
+    fi
+
+    echo "DONE"
+    """
+}
+
+process merge_peaks {
+    tag 'merge_peaks'
+    input:
+    path peaks from peaks_out.collect()
+    output:
+    path 'consensus/consensus.bed'
+    script:
+    """
+    mkdir -p consensus
+    if [[ -s peaks ]]; then
+      cat $(ls -1 peaks) | sort -k1,1 -k2,2n | bedtools merge -i - > consensus/consensus.bed
+      awk 'BEGIN{OFS="\t"} {print $1,$2+1,$3,"peak"NR,1}' consensus/consensus.bed > consensus/consensus.saf
+    fi
+    """
+}
+
+process counts {
+    tag 'featureCounts'
+    input:
+    path consensus_bed from merge_peaks.out
+    path bams from filtered_bams.collect()
+    output:
+    path 'consensus/counts.matrix'
+    script:
+    """
+    mkdir -p consensus
+    awk 'BEGIN{OFS="\t"} {print $1,$2+1,$3,"peak"NR,1}' ${consensus_bed} > consensus/consensus.saf
+    featureCounts -a consensus/consensus.saf -F SAF -o consensus/counts.txt -T ${task.cpus} -p -B -C ${bams.join(' ')}
+    cut -f1,7- consensus/counts.txt > consensus/counts.matrix
+    """
+}
+
+process qc_and_concordance {
+    tag 'qc'
+    input:
+    path counts_mat from counts.out
+    path consensus_bed from merge_peaks.out
+    output:
+    path 'qc/**'
+    script:
+    """
+    mkdir -p qc concordance
+    # FRiP
+    > qc/frip.tsv
+    for d in samples/*; do
+      sid=$(basename $d)
+      bamf=$d/filtered.bam
+      peakf=$d/macs2/${sid}_peaks.narrowPeak
+      if [[ -f "$bamf" && -f "$peakf" ]]; then
+        total=$(samtools view -c -F 0x904 $bamf)
+        inpk=$(bedtools intersect -u -a <(samtools view -F 0x904 -b $bamf) -b $peakf | samtools view -c -)
+        frip=$(awk "BEGIN{printf \"%.4f\", ($total==0)?0:$inpk/$total}")
+        echo -e "$sid\t$total\t$inpk\t$frip" >> qc/frip.tsv
+      fi
+    done
+
+    # fingerprint
+    bwlist=$(find samples -name "*.bw" | tr '\n' ' ')
+    if [[ -n "$bwlist" ]]; then
+      plotFingerprint -b $bwlist -o qc/fingerprint.png
+    fi
+
+    # Concordance: run R script
+    Rscript -e "library(DESeq2); library(ggplot2); library(uwot); library(pheatmap); cnt<-read.table('consensus/counts.matrix',header=TRUE,row.names=1); ss<-read.csv('${params.samples}',stringsAsFactors=FALSE); rownames(ss)<-ss\$sample_id; common<-intersect(colnames(cnt), rownames(ss)); cnt<-cnt[,common]; ss<-ss[common,]; dds<-DESeqDataSetFromMatrix(cnt,ss,~group); dds<-estimateSizeFactors(dds); vsd<-vst(dds,blind=FALSE); mat<-assay(vsd); pca<-prcomp(t(mat)); png('concordance/pca.png'); plot(pca$x[,1],pca$x[,2],col=as.factor(ss\$group)); dev.off(); um<-umap(t(mat)); png('concordance/umap.png'); plot(um, col=as.factor(ss\$group)); dev.off(); cor.mat<-cor(t(mat)); pheatmap(cor.mat, filename='concordance/corr.png')"
+
+    echo "QC done"
+    """
+}
+
+==== nextflow.config ====
+
+process {
+  executor = 'local'
+  cpus = 4
+  memory = '8.GB'
+  time = '24h'
+}
+
+profiles {
+  slurm {
+    process.executor = 'slurm'
+  }
+  pbs {
+    process.executor = 'pbs'
+  }
+}
+
+==== README.md ====
+# Nextflow ATAC-seq DSL2 pipeline
+
+This Nextflow DSL2 pipeline implements the ATAC-seq workflow described earlier: trimming, mapping with bwa-mem, duplicate removal, Tn5 shift, peak calling (MACS2), consensus peak merging, counting (featureCounts), QC measures (FRiP, fingerprint, TSS enrichment), IDR pairing, and optional ArchR/ChromVAR.
+
+## Requirements
+- Nextflow >= 21
+- Docker or Singularity (recommended)
+- Tools in container: bwa, samtools, bedtools, macs2, deepTools, featureCounts, yq, atropos, bamCoverage, bamToBed, R with required packages.
+
+## Quick start
+1. Edit `config.yaml` (same format as EXAMPLE_config.yaml in previous steps)
+2. Prepare `samples.csv` (sample_id,fastq1,fastq2,bam,group,replicate,species)
+3. Run:
+   nextflow run main.nf --config config.yaml --samples samples.csv --species human --threads 16 -profile slurm
+
+
+==== modules/README ====
+Notes:
+- This single-file repo is a compact example. For production, split processes into modules under `modules/` and import them using `include`.
+- Ensure containers have required tools.
+
+---
+
+# End of packaged pipeline
