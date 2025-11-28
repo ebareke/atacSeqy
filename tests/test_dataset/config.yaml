@@ -1,0 +1,22 @@
+species:
+  test:
+    genome_fa: tests/test_dataset/genome.fa
+    bwa_index_prefix: tests/test_dataset/mini-index/genome
+    effective_genome_size: 1000
+    blacklist: /dev/null
+    tss_bed: /dev/null
+    mito_name: chrM
+    mito_filter: false
+    mito_threshold: 1.0
+    peak_mode: narrow
+
+analysis:
+  archr_enabled: false
+  chromvar_enabled: false
+  idr_enabled: false
+  deseq2_enabled: false
+
+defaults:
+  species: test
+  threads: 2
+  outdir: results_test
