@@ -1,0 +1,11 @@
+species:
+  human:
+    genome_fa: /data/genomes/hg38/hg38.fa
+    bwa_index_prefix: /data/genomes/hg38/hg38
+    effective_genome_size: 2913022398
+    blacklist: /data/genomes/hg38/hg38.blacklist.bed
+    tss_bed: /data/genomes/hg38/hg38_tss.bed
+    mito_name: chrM
+    mito_filter: true
+    mito_threshold: 0.2
+    peak_mode: narrow
