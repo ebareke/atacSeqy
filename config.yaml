@@ -1,11 +1,31 @@
+# atacSeqy — Minimal Configuration Template (config.yaml)
+
+```yaml
+# ============================================================
+# atacSeqy — Minimal Configuration Template
+# ============================================================
+
 species:
   human:
-    genome_fa: /data/genomes/hg38/hg38.fa
-    bwa_index_prefix: /data/genomes/hg38/hg38
+    genome_fa: /path/to/hg38.fa
+    bwa_index_prefix: /path/to/hg38
     effective_genome_size: 2913022398
-    blacklist: /data/genomes/hg38/hg38.blacklist.bed
-    tss_bed: /data/genomes/hg38/hg38_tss.bed
+    blacklist: /path/to/hg38.blacklist.bed
+    tss_bed: /path/to/hg38_tss.bed
     mito_name: chrM
     mito_filter: true
     mito_threshold: 0.2
     peak_mode: narrow
+
+analysis:
+  archr_enabled: true
+  chromvar_enabled: true
+  idr_enabled: false
+  deseq2_enabled: true
+
+defaults:
+  species: human
+  threads: 16
+  outdir: results
+```
+

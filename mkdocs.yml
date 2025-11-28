@@ -1,0 +1,81 @@
+site_name: atacSeqy Documentation
+site_description: "Autonomous ATAC-seq Processing Engine — Documentation"
+site_author: "Dr. Eric Bareke, Majewski Lab, Human Genetics, McGill University"
+site_url: "https://ebareke.github.io/atacSeqy"
+
+repo_name: "ebareke/atacSeqy"
+repo_url: "https://github.com/ebareke/atacSeqy"
+
+theme:
+  name: "material"
+  language: "en"
+  features:
+    - navigation.tabs
+    - navigation.top
+    - navigation.sections
+    - navigation.expand
+    - toc.integrate
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+    - search.highlight
+    - search.suggest
+    - search.share
+  palette:
+    - scheme: default
+      primary: "indigo"
+      accent: "teal"
+    - scheme: slate
+      primary: "indigo"
+      accent: "teal"
+      toggle:
+        icon: material/weather-night
+        name: "Switch to dark mode"
+  logo: "img/logo.svg"      # optional: place a logo here
+  favicon: "img/logo.svg"   # optional: favicon
+
+markdown_extensions:
+  - admonition
+  - toc:
+      permalink: true
+  - footnotes
+  - def_list
+  - attr_list
+  - md_in_html
+  - codehilite:
+      guess_lang: false
+  - pymdownx.highlight
+  - pymdownx.inlinehilite
+  - pymdownx.superfences
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - pymdownx.tabbed:
+      alternate_style: true
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/ebareke
+    - icon: fontawesome/solid/flask
+      link: https://github.com/ebareke/atacSeqy
+
+nav:
+  - Home: index.md          # you can point this to docs/README copy if you like
+  - Getting Started:
+      - Overview: docs/usage.md
+      - Installation: docs/install.md
+      - Tutorial: docs/tutorial.md
+  - Configuration:
+      - Configuration Guide: docs/configuration.md
+      - Architecture: docs/architecture.md
+      - Methods (Publication): docs/methods_for_publication.md
+  - Reference:
+      - FAQ: docs/faq.md
+      - Workflow Diagram: docs/workflow.svg
+  - Project:
+      - Changelog: CHANGELOG.md
+      - Contributing: CONTRIBUTING.md
+      - License: LICENSE
+      - Citation: CITATION.cff

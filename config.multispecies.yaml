@@ -1,0 +1,55 @@
+# atacSeqy — Multi-Species Configuration Pack (config.multispecies.yaml)
+
+```yaml
+# ============================================================
+# atacSeqy Multi-Species Configuration Pack
+# Supports: human, mouse, drosophila
+# ============================================================
+
+species:
+
+  human:
+    genome_fa: /genomes/hg38/hg38.fa
+    bwa_index_prefix: /genomes/hg38/hg38
+    effective_genome_size: 2913022398
+    blacklist: /genomes/hg38/hg38.blacklist.bed
+    tss_bed: /genomes/hg38/hg38_tss.bed
+    mito_name: chrM
+    mito_filter: true
+    mito_threshold: 0.2
+    peak_mode: narrow
+
+  mouse:
+    genome_fa: /genomes/mm10/mm10.fa
+    bwa_index_prefix: /genomes/mm10/mm10
+    effective_genome_size: 2652783500
+    blacklist: /genomes/mm10/mm10.blacklist.bed
+    tss_bed: /genomes/mm10/mm10_tss.bed
+    mito_name: chrM
+    mito_filter: true
+    mito_threshold: 0.15
+    peak_mode: narrow
+
+  drosophila:
+    genome_fa: /genomes/dm6/dm6.fa
+    bwa_index_prefix: /genomes/dm6/dm6
+    effective_genome_size: 142573017
+    blacklist: /genomes/dm6/dm6.blacklist.bed
+    tss_bed: /genomes/dm6/dm6_tss.bed
+    mito_name: chrM
+    mito_filter: true
+    mito_threshold: 0.25
+    peak_mode: narrow
+
+analysis:
+  archr_enabled: true
+  chromvar_enabled: true
+  idr_enabled: false
+  deseq2_enabled: true
+
+defaults:
+  species: human
+  threads: 16
+  outdir: results
+```
+
