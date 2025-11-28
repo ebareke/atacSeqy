@@ -1,30 +1,106 @@
+name: Pipeline Test
 
----
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
 
-## 2️⃣ `tests/test_dataset/config.yaml`
+jobs:
+  test-pipeline:
+    name: Dry-run pipeline test with built-in mini dataset
+    runs-on: ubuntu-latest
 
-Minimal config tailored to the tiny test genome.
+    steps:
+      # -----------------------------
+      # Setup
+      # -----------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-```yaml
-species:
-  test:
-    genome_fa: tests/test_dataset/genome.fa
-    bwa_index_prefix: tests/test_dataset/genome
-    effective_genome_size: 1000
-    blacklist: /dev/null
-    tss_bed: /dev/null
-    mito_name: chrM
-    mito_filter: false
-    mito_threshold: 1.0
-    peak_mode: narrow
+      - name: Verify test dataset exists
+        run: |
+          echo "Checking for test dataset..."
+          if [ ! -d tests/test_dataset ]; then
+            echo "❌ Missing tests/test_dataset/"; exit 1
+          fi
+          ls -R tests/test_dataset
 
-analysis:
-  archr_enabled: false
-  chromvar_enabled: false
-  idr_enabled: false
-  deseq2_enabled: false
+      - name: Install dependencies (yq + bwa)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y yq bwa
 
-defaults:
-  species: test
-  threads: 2
-  outdir: results_test
+      # -----------------------------
+      # Build lightweight BWA index
+      # -----------------------------
+      - name: Build BWA index for mini genome
+        run: |
+          echo "Building mini BWA index..."
+          mkdir -p tests/test_dataset/mini-index
+          cp tests/test_dataset/genome.fa tests/test_dataset/mini-index/genome.fa
+          bwa index tests/test_dataset/mini-index/genome.fa
+          echo "Index built:"
+          ls -l tests/test_dataset/mini-index
+
+      # -----------------------------
+      # Validate config
+      # -----------------------------
+      - name: Validate configuration using mini dataset
+        run: |
+          if [ -f validate_config.sh ]; then
+            chmod +x validate_config.sh
+            ./validate_config.sh \
+              tests/test_dataset/config.yaml \
+              tests/test_dataset/samples.csv
+          else
+            echo "⚠ validate_config.sh not found — skipping"
+          fi
+
+      # -----------------------------
+      # Dry-run pipeline
+      # -----------------------------
+      - name: Run atacSeqy dry-run
+        run: |
+          if [ -f run.sh ]; then
+            chmod +x run.sh
+            ./run.sh \
+              --config tests/test_dataset/config.yaml \
+              --samples tests/test_dataset/samples.csv \
+              --cluster local \
+              --dryrun
+          else
+            echo "⚠ run.sh not found — skipping pipeline test"
+          fi
+
+  # ---------------------------------------------
+  # Docker test (optional but recommended)
+  # ---------------------------------------------
+  test-docker:
+    name: Build Docker image (if Dockerfile exists)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Check if Dockerfile exists
+        id: docker_exists
+        run: |
+          if [ -f Dockerfile ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build Docker image
+        if: steps.docker_exists.outputs.exists == 'true'
+        run: |
+          echo "Dockerfile found — building container..."
+          docker build -t atacseqy:test .
+          echo "✔ Docker build success"
+
+      - name: Skip if no Dockerfile
+        if: steps.docker_exists.outputs.exists == 'false'
+        run: echo "⚠ No Dockerfile — skipping Docker test"
