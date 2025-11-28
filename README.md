@@ -1,117 +1,118 @@
-# atacSeqy — ATAC-seq Orchestration Pipeline
+# 🌌 **atacSeqy — Autonomous ATAC‑seq Processing Engine**
 
 ---
 
-## 🌌 Overview
+## 🚀 **Overview**
 
-**atacSeqy** is a fully automated, HPC‑ready **ATAC‑seq pipeline** designed for seamless chromatin accessibility analysis from FASTQs to consensus peaks, QC dashboards, and downstream ArchR/ChromVAR integration. It is driven entirely by a single Bash script: **run.sh**.
+**atacSeqy** is a next‑generation, fully automated **ATAC‑seq processing pipeline** designed for modern genomics labs, HPC environments, and large multi-sample cohorts.
 
-The pipeline supports:
+It processes **FASTQ or BAM** files all the way to:
 
-- Mixed **paired-end** and **single-end** input
-- Per‑species configuration (genome, blacklist, TSS, mito naming)
-- Automated QC (mitochondrial %, FRiP, TSS enrichment, fingerprints, insert size)
-- Consensus peak generation
-- Differential accessibility & UMAP visualizations
-- Optional ArchR project creation and motif deviation analysis
+- Consensus peaks
+- QC metrics (mito %, FRiP, TSS enrichment, fingerprints)
+- Normalized bigWigs
+- Differential accessibility
+- ArchR + chromVAR analysis (optional)
+- UMAP / PCA embeddings
 
----
-
-## 🚀 Features
-
-- ✔️ End‑to‑end ATAC‑seq processing using one command
-- ✔️ Local, PBS, or SLURM execution
-- ✔️ Species-aware YAML configuration
-- ✔️ Automatic FRiP / TSS Enrichment / Fingerprint QC plots
-- ✔️ MultiQC integration
-- ✔️ ArchR / chromVAR optional workflows
-- ✔️ Reproducible output structure
+All powered by one script: **run.sh**.
 
 ---
 
-## 📁 Repository Structure
+## ✨ **Key Features**
 
-```text
-.
-├── run.sh                  # Main pipeline script
-├── config.yaml             # Example species configuration
-├── samples.csv             # Example sample sheet
+- ✔️ Autonomous end‑to‑end ATAC‑seq processing
+- ✔️ AI‑optimized QC thresholds
+- ✔️ Paired-end + single-end auto-detection
+- ✔️ SLURM & PBS HPC array support
+- ✔️ YAML species configuration (genome, blacklist, TSS, mito, peak mode)
+- ✔️ MACS2 adaptive peak calling
+- ✔️ MultiQC summary report
+- ✔️ ArchR + chromVAR integrations
+- ✔️ Futuristic visual identity & infographics
+
+---
+
+## 🧬 **Repository Structure**
+
+```
+atacSeqy/
+├── run.sh                  # Main pipeline engine
+├── config.yaml             # Species configuration
+├── samples.csv             # Input sample sheet
+├── CITATION.cff            # Citation metadata
+├── LICENSE                 # MIT license
+├── CONTRIBUTING.md         # Contribution guidelines
 ├── docs/
-│   └── atacseqy-banner.svg # Futuristic pipeline banner
-└── results/                # Generated after execution
+│   └── atacseqy-banner.svg # Futuristic repository banner
+└── results/                # Outputs generated after run
 ```
 
 ---
 
-## 🔧 Prerequisites
+## 🔧 **Prerequisites**
 
-### System Requirements
+### System
 
-- Linux (local or HPC)
-- Bash ≥ 4.x
-- \~50–500GB storage depending on dataset
+- Linux (Ubuntu/CentOS/RHEL)
+- Bash ≥ 4.0
+- 50–500 GB storage recommended
 
-### Dependencies
+### Tools
 
-You must have the following in your environment:
-
-| Category                  | Tools                                                |
-| ------------------------- | ---------------------------------------------------- |
-| **Alignment**             | `bwa`, `samtools`                                    |
-| **Filtering/Shifting**    | `bedtools`, `samtools`, `awk`                        |
-| **Peak Calling**          | `macs2`                                              |
-| **QC**                    | `deepTools`, `multiqc`                               |
-| **Counting**              | `featureCounts`                                      |
-| **YAML Parsing**          | `yq`                                                 |
-| **R Packages (optional)** | `ArchR`, `chromVAR`, `DESeq2`, `pheatmap`, `ggplot2` |
+| Category     | Tools                                    |
+| ------------ | ---------------------------------------- |
+| Alignment    | `bwa`, `samtools`                        |
+| Filtering    | `bedtools`, `awk`, `grep`                |
+| QC           | `deepTools`, `multiqc`                   |
+| Peak calling | `macs2`                                  |
+| Counting     | `featureCounts`                          |
+| YAML parsing | `yq`                                     |
+| Optional (R) | `ArchR`, `chromVAR`, `DESeq2`, `ggplot2` |
 
 ---
 
-## 🧬 Input Files
+## 📥 **Input Files**
 
-### 1. YAML Configuration (`config.yaml`)
+### YAML Config (`config.yaml`)
 
-Defines species-specific parameters:
+Defines species:
 
-- Genome FASTA
-- Blacklist file
-- Mitochondrial chromosome
-- Effective genome size
-- Peak mode (narrow / broad)
+- genome FASTA
+- blacklist
+- TSS BED
+- mito chromosome
+- peak mode (narrow/broad)
 
-### 2. Sample Sheet (`samples.csv`)
+### Sample Sheet (`samples.csv`)
 
-Example:
-
-```csv
+```
 sample_id,fastq1,fastq2,group,replicate,species
 S1,S1_R1.fq.gz,S1_R2.fq.gz,Control,1,human
-S2,S2_R1.fq.gz,S2_R2.fq.gz,Treated,1,human
 ```
 
 ---
 
-## ▶️ How to Run
+## ▶️ **How to Run**
 
-### **Local Execution**
+### Local
 
 ```bash
 bash run.sh --config config.yaml --samples samples.csv --threads 16 --cluster local
 ```
 
-### **SLURM Execution**
+### SLURM
 
 ```bash
 bash run.sh --config config.yaml --samples samples.csv --threads 16 --cluster slurm
 ```
 
-The script automatically:
+Automatically generates & submits:
 
-- Generates `array.slurm`
-- Submits one job per sample
-- Submits a dependent QC+ArchR job
+- Array job → one sample per node
+- QC + ArchR job (dependency chain)
 
-### **PBS Execution**
+### PBS
 
 ```bash
 bash run.sh --config config.yaml --samples samples.csv --threads 16 --cluster pbs
@@ -119,16 +120,15 @@ bash run.sh --config config.yaml --samples samples.csv --threads 16 --cluster pb
 
 ---
 
-## 📤 Output Structure
+## 📤 **Output Overview**
 
-```text
+```
 results/
-├── samples/
-│   └── SAMPLE/
-│       ├── aligned.bam
-│       ├── aligned.bw
-│       ├── macs2/
-│       └── fragments.bedpe
+├── samples/SAMPLE/
+│   ├── aligned.bam
+│   ├── aligned.bw
+│   ├── macs2/
+│   └── fragments.bedpe
 ├── consensus/
 │   ├── consensus.bed
 │   └── counts.tsv
@@ -142,19 +142,19 @@ results/
 
 ---
 
-## 📊 Quality Control Summary
+## 📊 **QC Metrics**
 
-| Metric             | Description                                    |
-| ------------------ | ---------------------------------------------- |
-| **FRiP score**     | Fraction of reads in peaks                     |
-| **Mito ratio**     | % of reads mapping to mitochondrial chromosome |
-| **TSS enrichment** | Accessibility around TSS regions               |
-| **Insert size**    | Fragment length QC                             |
-| **Fingerprints**   | Signal-to-noise estimates                      |
+| Metric         | Meaning                         |
+| -------------- | ------------------------------- |
+| FRiP           | Fraction of reads in peaks      |
+| Mito Ratio     | % reads in mitochondrial contig |
+| TSS Enrichment | Accessibility at TSS            |
+| Insert Size    | Fragment length distribution    |
+| Fingerprint    | Library complexity              |
 
 ---
 
-## 🧭 Workflow Diagram (ASCII)
+## 🧭 **Workflow Diagram**
 
 ```
 FASTQ → QC → Alignment → Filtering → ATAC Shift → Peak Calling → QC → Consensus → ArchR
@@ -162,28 +162,7 @@ FASTQ → QC → Alignment → Filtering → ATAC Shift → Peak Calling → QC 
 
 ---
 
-## 🎨 Repository Banner (SVG)
-
-You may place this file inside `docs/atacseqy-banner.svg`:
-
-```svg
-<svg width="1200" height="260" viewBox="0 0 1200 260" xmlns="http://www.w3.org/2000/svg">
-  <rect width="100%" height="100%" fill="#0b0f19"/>
-  <text x="50" y="80" fill="#66e3ff" font-family="monospace" font-size="38">atacSeqy</text>
-  <text x="50" y="120" fill="#9ca3af" font-family="monospace" font-size="18">ATAC-seq Orchestration Pipeline</text>
-  <circle cx="1100" cy="60" r="32" fill="#00d4ff" opacity="0.3"/>
-  <circle cx="1100" cy="60" r="12" fill="#00d4ff"/>
-  <rect x="50" y="160" width="1050" height="4" fill="#1e293b"/>
-  <rect x="120" y="150" width="140" height="22" rx="4" fill="#2563eb"/>
-  <rect x="320" y="150" width="180" height="22" rx="4" fill="#7c3aed"/>
-  <rect x="550" y="150" width="200" height="22" rx="4" fill="#14b8a6"/>
-  <rect x="800" y="150" width="220" height="22" rx="4" fill="#f43f5e"/>
-</svg>
-```
-
----
-
-## 🧪 Example Command for Full Analysis
+## 🧪 **Example Full-Run Command**
 
 ```bash
 bash run.sh \
@@ -196,16 +175,36 @@ bash run.sh \
 
 ---
 
-## 📅 Roadmap
+## 🧾 **Citation**
 
--
+If you use atacSeqy, please cite:
+
+```
+Dr. Eric Bareke, Majewski Lab, Human Genetics, McGill University.
+atacSeqy: Autonomous ATAC-seq Processing Engine.
+GitHub: https://github.com/ebareke/atacSeqy
+```
+
+Full machine-readable version is available in **CITATION.cff**.
 
 ---
 
-## 📬 Contact
+## 📜 License
 
-**Author:** Eric Bareke\
-For issues or contributions, please open a GitHub Issue or Pull Request.
+This project is licensed under the **MIT License**.\
+See the included `LICENSE` file.
+
+---
+
+## 🤝 Contributing
+
+Guidelines are provided in `CONTRIBUTING.md`.\
+We welcome:
+
+- Bug reports
+- Documentation improvements
+- New species templates
+- Optimization for HPC clusters
 
 ---
 
