@@ -1,0 +1,60 @@
+<svg width="420" height="420" viewBox="0 0 420 420" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#020617"></stop>
+      <stop offset="50%" stop-color="#1e293b"></stop>
+      <stop offset="100%" stop-color="#0f172a"></stop>
+    </linearGradient>
+
+    <!-- Helix gradient -->
+    <linearGradient id="helixGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#4f46e5"></stop>
+      <stop offset="50%" stop-color="#06b6d4"></stop>
+      <stop offset="100%" stop-color="#22c55e"></stop>
+    </linearGradient>
+  </defs>
+
+  <!-- Rounded gradient background -->
+  <rect x="0" y="0" width="420" height="420" rx="48" fill="url(#bgGrad)"></rect>
+
+  <!-- Subtle inner glow ring -->
+  <circle cx="210" cy="180" r="140" fill="none" stroke="#0ea5e9" stroke-width="2" opacity="0.35"></circle>
+
+  <!-- Rotating DNA helix group -->
+  <g id="rotating-helix" transform="translate(210,180)">
+    <!-- Rotate animation around center -->
+    <animateTransform attributeName="transform" type="rotate" from="0 0 0" to="360 0 0" dur="14s" repeatCount="indefinite"></animateTransform>
+
+    <!-- Left backbone -->
+    <path d="M -70 -100 C 10 -60, 10  60, -70 100" fill="none" stroke="url(#helixGrad)" stroke-width="10" stroke-linecap="round"></path>
+
+    <!-- Right backbone -->
+    <path d="M  70 -100 C -10 -60, -10 60, 70 100" fill="none" stroke="url(#helixGrad)" stroke-width="10" stroke-linecap="round" opacity="0.9"></path>
+
+    <!-- Rungs -->
+    <g stroke="#e5e7eb" stroke-width="7" stroke-linecap="round" opacity="0.75">
+      <line x1="-70" y1="-80" x2="70" y2="-80"></line>
+      <line x1="-70" y1="-40" x2="70" y2="-40"></line>
+      <line x1="-70" y1="  0" x2="70" y2="  0"></line>
+      <line x1="-70" y1=" 40" x2="70" y2=" 40"></line>
+      <line x1="-70" y1=" 80" x2="70" y2=" 80"></line>
+    </g>
+
+    <!-- Glowing nucleus dot -->
+    <circle cx="0" cy="0" r="10" fill="#a855f7" opacity="0.9">
+      <animate attributeName="r" values="8;12;8" dur="2.8s" repeatCount="indefinite"></animate>
+      <animate attributeName="opacity" values="0.4;1;0.4" dur="2.8s" repeatCount="indefinite"></animate>
+    </circle>
+  </g>
+
+  <!-- Title text -->
+  <text x="210" y="360" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" font-size="40" text-anchor="middle" fill="#e5e7eb" font-weight="600">
+    atacSeqy
+  </text>
+
+  <!-- Subtitle -->
+  <text x="210" y="390" font-family="system-ui, -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif" font-size="14" text-anchor="middle" fill="#9ca3af" letter-spacing="0.15em">
+    AUTONOMOUS ATAC-SEQ ENGINE
+  </text>
+</svg>
