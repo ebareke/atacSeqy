@@ -1,95 +1,30 @@
-name: Pipeline Test
 
-on:
-  push:
-    branches: [ main, master ]
-  pull_request:
-    branches: [ main, master ]
-  workflow_dispatch:
+---
 
-jobs:
-  test-pipeline:
-    name: Test atacSeqy pipeline (dry run)
-    runs-on: ubuntu-latest
+## 2️⃣ `tests/test_dataset/config.yaml`
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+Minimal config tailored to the tiny test genome.
 
-      - name: Install dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y yq
+```yaml
+species:
+  test:
+    genome_fa: tests/test_dataset/genome.fa
+    bwa_index_prefix: tests/test_dataset/genome
+    effective_genome_size: 1000
+    blacklist: /dev/null
+    tss_bed: /dev/null
+    mito_name: chrM
+    mito_filter: false
+    mito_threshold: 1.0
+    peak_mode: narrow
 
-      - name: Create mock samples.csv
-        run: |
-          cat <<EOF > mock_samples.csv
-          sample_id,fastq1,fastq2,bam,group,replicate,species
-          TEST,, , /dev/null,TestGroup,1,human
-          EOF
+analysis:
+  archr_enabled: false
+  chromvar_enabled: false
+  idr_enabled: false
+  deseq2_enabled: false
 
-      - name: Create mock config.yaml
-        run: |
-          cat <<EOF > mock_config.yaml
-          species:
-            human:
-              genome_fa: /dev/null
-              bwa_index_prefix: /dev/null
-              blacklist: /dev/null
-              tss_bed: /dev/null
-              effective_genome_size: 100000
-              mito_name: chrM
-              mito_filter: false
-              mito_threshold: 1.0
-              peak_mode: narrow
-          defaults:
-            species: human
-            threads: 1
-            outdir: results
-          EOF
-
-      - name: Validate mock config
-        run: |
-          if [ -f validate_config.sh ]; then
-            chmod +x validate_config.sh
-            ./validate_config.sh mock_config.yaml mock_samples.csv
-          else
-            echo "validate_config.sh not found; skipping validation."
-          fi
-
-      - name: Test run.sh dry-run (if present)
-        run: |
-          if [ -f run.sh ]; then
-            chmod +x run.sh
-            echo "Testing run.sh in dryrun mode..."
-            ./run.sh --config mock_config.yaml --samples mock_samples.csv --dryrun || true
-          else
-            echo "run.sh not found; skipping pipeline test."
-          fi
-
-  test-docker:
-    name: Build Docker image (if Dockerfile exists)
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Check if Dockerfile exists
-        id: docker_exists
-        run: |
-          if [ -f Dockerfile ]; then
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Build container
-        if: steps.docker_exists.outputs.exists == 'true'
-        run: |
-          docker build -t atacseqy:test .
-          echo "Docker build completed successfully."
-
-      - name: Skip build if no Dockerfile
-        if: steps.docker_exists.outputs.exists == 'false'
-        run: echo "No Dockerfile found — skipping Docker test."
+defaults:
+  species: test
+  threads: 2
+  outdir: results_test
