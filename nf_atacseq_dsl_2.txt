@@ -313,7 +313,7 @@ profiles {
 ==== README.md ====
 # Nextflow ATAC-seq DSL2 pipeline
 
-This Nextflow DSL2 pipeline implements the ATAC-seq workflow described earlier: trimming, mapping with bwa-mem, duplicate removal, Tn5 shift, peak calling (MACS2), consensus peak merging, counting (featureCounts), QC measures (FRiP, fingerprint, TSS enrichment), IDR pairing, and optional ArchR/ChromVAR.
+This Nextflow DSL2 pipeline implements the ATAC-seq workflow described in this repo: trimming, mapping with bwa-mem, duplicate removal, Tn5 shift, peak calling (MACS2), consensus peak merging, counting (featureCounts), QC measures (FRiP, fingerprint, TSS enrichment), IDR pairing, and optional ArchR/ChromVAR.
 
 ## Requirements
 - Nextflow >= 21
