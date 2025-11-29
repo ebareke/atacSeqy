@@ -163,11 +163,7 @@ Includes:
 
 ## 🔮 Workflow Overview
 
-You can reference the SVG workflow diagram:
-
-
 ![atacSeqy Workflow](docs/workflow.svg)
-
 
 This illustrates the flow from FASTQ/BAM → QC → Alignment → Fragments → Peaks → Consensus → QC Aggregation → ArchR/chromVAR.
 
