@@ -7,24 +7,6 @@ Designed to deliver **end-to-end chromatin accessibility analysis** with minimal
 
 ---
 
-## 🚀 Futuristic Banner (Concept)
-
-> *Chromatin accessibility, reimagined as a self-driving analysis engine for your sequencing data.*
-
-You can optionally add a custom banner image in your GitHub repo settings or via Markdown, for example:
-
-```md
-![atacSeqy Futuristic Banner](docs/workflow.svg)
-```
-
----
-
-## 🎖️ Badges
-
----
-
-## 🧪 Pipeline Logo
-
 <p align="center">
   <img src="docs/img/logo.svg" width="260" alt="atacSeqy logo" />
 </p>
@@ -184,7 +166,7 @@ Includes:
 You can reference the SVG workflow diagram:
 
 ```md
-![atacSeqy Workflow](docs/workflow.svg)
+![atacSeqy Workflow](./workflow.svg)
 ```
 
 This illustrates the flow from FASTQ/BAM → QC → Alignment → Fragments → Peaks → Consensus → QC Aggregation → ArchR/chromVAR.
@@ -220,16 +202,14 @@ Full documentation is provided in the `docs/` directory:
 - `docs/tutorial.md` — End-to-end example
 - `docs/methods_for_publication.md` — Publication-ready Methods
 
-A GitHub Pages site can be deployed with `.github/workflows/pages.yml`.
-
 ---
 
 ## 🧠 Development & Contribution
 
 Contributions are welcome!
 
-- See `` for guidelines.
-- See `` for release history.
+- See `docs/usage.md` for guidelines.
+- See `CHANGELOG.md` for release history.
 - Open issues and PRs at: [https://github.com/ebareke/atacSeqy/issues](https://github.com/ebareke/atacSeqy/issues)
 
 ---
