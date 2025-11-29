@@ -202,16 +202,14 @@ Full documentation is provided in the `docs/` directory:
 - `docs/tutorial.md` — End-to-end example
 - `docs/methods_for_publication.md` — Publication-ready Methods
 
-A GitHub Pages site can be deployed with `.github/workflows/pages.yml`.
-
 ---
 
 ## 🧠 Development & Contribution
 
 Contributions are welcome!
 
-- See `` for guidelines.
-- See `` for release history.
+- See `docs/usage.md` for guidelines.
+- See `CHANGELOG.md` for release history.
 - Open issues and PRs at: [https://github.com/ebareke/atacSeqy/issues](https://github.com/ebareke/atacSeqy/issues)
 
 ---
