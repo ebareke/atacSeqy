@@ -54,7 +54,7 @@
 
   <!-- QC & Trimming -->
   <rect class="node" x="240" y="90" width="160" height="60"/>
-  <text class="label" x="320" y="115">QC & Trimming</text>
+  <text class="label" x="320" y="115">QC &amp; Trimming</text>
   <text class="sublabel" x="320" y="135">atropos / fastp</text>
 
   <!-- Alignment -->
@@ -64,7 +64,7 @@
 
   <!-- Mito QC -->
   <rect class="node" x="640" y="90" width="160" height="60"/>
-  <text class="label" x="720" y="115">Mito QC & Filter</text>
+  <text class="label" x="720" y="115">Mito QC &amp; Filter</text>
   <text class="sublabel" x="720" y="135">species-aware</text>
 
   <!-- Peak Calling -->
