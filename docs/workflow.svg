@@ -1,0 +1,87 @@
+<svg width="1400" height="260" viewBox="0 0 1400 260" xmlns="http://www.w3.org/2000/svg">
+
+  <!-- Background -->
+  <rect width="1400" height="260" fill="#0f172a" rx="24"/>
+
+  <style>
+    .node {
+      fill: #020617;
+      stroke: #38bdf8;
+      stroke-width: 2;
+      rx: 12;
+      ry: 12;
+    }
+    .label {
+      fill: #e0f2fe;
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      text-anchor: middle;
+    }
+    .sublabel {
+      fill: #9ca3af;
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      text-anchor: middle;
+    }
+    .title {
+      fill: #e5e7eb;
+      font-family: Arial, sans-serif;
+      font-size: 20px;
+      text-anchor: middle;
+    }
+    .arrow {
+      stroke: #38bdf8;
+      stroke-width: 2;
+      marker-end: url(#arrowhead);
+    }
+  </style>
+
+  <!-- Arrow marker -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#38bdf8"/>
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text class="title" x="700" y="40">atacSeqy ATAC-seq Workflow</text>
+
+  <!-- Nodes -->
+  <!-- Input -->
+  <rect class="node" x="40" y="90" width="160" height="60"/>
+  <text class="label" x="120" y="115">FASTQ / BAM</text>
+  <text class="sublabel" x="120" y="135">raw input</text>
+
+  <!-- QC & Trimming -->
+  <rect class="node" x="240" y="90" width="160" height="60"/>
+  <text class="label" x="320" y="115">QC & Trimming</text>
+  <text class="sublabel" x="320" y="135">atropos / fastp</text>
+
+  <!-- Alignment -->
+  <rect class="node" x="440" y="90" width="160" height="60"/>
+  <text class="label" x="520" y="115">Alignment</text>
+  <text class="sublabel" x="520" y="135">bwa + samtools</text>
+
+  <!-- Mito QC -->
+  <rect class="node" x="640" y="90" width="160" height="60"/>
+  <text class="label" x="720" y="115">Mito QC & Filter</text>
+  <text class="sublabel" x="720" y="135">species-aware</text>
+
+  <!-- Peak Calling -->
+  <rect class="node" x="840" y="90" width="160" height="60"/>
+  <text class="label" x="920" y="115">Peak Calling</text>
+  <text class="sublabel" x="920" y="135">MACS2</text>
+
+  <!-- Consensus -->
+  <rect class="node" x="1040" y="90" width="260" height="60"/>
+  <text class="label" x="1170" y="115">Consensus + QC</text>
+  <text class="sublabel" x="1170" y="135">Counts • FRiP • TSS • MultiQC</text>
+
+  <!-- Arrows -->
+  <line class="arrow" x1="200" y1="120" x2="240" y2="120"/>
+  <line class="arrow" x1="400" y1="120" x2="440" y2="120"/>
+  <line class="arrow" x1="600" y1="120" x2="640" y2="120"/>
+  <line class="arrow" x1="800" y1="120" x2="840" y2="120"/>
+  <line class="arrow" x1="1000" y1="120" x2="1040" y2="120"/>
+
+</svg>
