@@ -8,7 +8,7 @@ Designed to deliver **end-to-end chromatin accessibility analysis** with minimal
 ---
 
 <p align="center">
-  <img src="docs/img/logo.svg" width="260" alt="atacSeqy logo" />
+  <img src="./img/logo.svg" width="260" alt="atacSeqy logo" />
 </p>
 
 
