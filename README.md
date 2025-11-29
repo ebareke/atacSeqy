@@ -165,9 +165,7 @@ Includes:
 
 You can reference the SVG workflow diagram:
 
-md
-![atacSeqy Workflow](docs/workflow.svg)
-
+![atacSeqy Workflow](https://raw.githubusercontent.com/ebareke/atacSeqy/main/docs/workflow.svg)
 
 This illustrates the flow from FASTQ/BAM → QC → Alignment → Fragments → Peaks → Consensus → QC Aggregation → ArchR/chromVAR.
 
