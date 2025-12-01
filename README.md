@@ -1,4 +1,4 @@
-# 🧬 atacSeqy
+# 🧬 atacSeqy <img src="https://img.shields.io/badge/status-active-success" align="right"/>
 
 ### Autonomous ATAC-seq Processing Engine
 
